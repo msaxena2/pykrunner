@@ -7,7 +7,7 @@ import threading
 
 
 def execute_test(src_file_path, output_file_path, result_file_path):
-    command = "kcc" + " " + src_file_path + " + -o " + output_file_path
+    command = ["kcc", src_file_path, "-o", output_file_path]
     result = execute(command)
     if (result[0] != "ERROR"):
         command = output_file_path
@@ -16,14 +16,14 @@ def execute_test(src_file_path, output_file_path, result_file_path):
         result_file.write(result[1])
         result_file.close()
 
-
 def execute(command):
     try:
         print("pykrunner runninng \"" + command + "\"")
-        result = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
-        return ("SUCCESS", result)
-    except subprocess.CalledProcessError as grepexc:
-        return ("ERROR", grepexc.output)
+        # Capture the Error in STDOUT
+        result = subprocess.check_output(command)
+        return ("stdout", result)
+    except subprocess.CalledProcessError as stderr:
+        return ("stderr", stderr.output)
 
 
 def run_and_wait(thread_list):
@@ -89,8 +89,8 @@ def process_test_folder(executable_path, test_folders, output_path, src_file_ext
 
     return success_map
 
-def parse_config_file(config_file):
-    
+# def parse_config_file(config_file):
+
 def main():
     state = "default"
     test_folders = []
