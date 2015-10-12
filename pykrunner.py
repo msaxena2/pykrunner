@@ -4,6 +4,8 @@ import subprocess
 import sys
 from multiprocessing import Pool
 import signal
+import pykrunner_parser
+from activity import Activity
 
 
 class TimeOutException(Exception):
@@ -166,7 +168,9 @@ def thread_handler(test_folder, output_path, src_file_extension, thread_count):
 #         # print str(thread_handler(test_folder, output_folder, file_extension, 3))
 
 def main():
+    activity_list = pykrunner_parser.parse(os.path.abspath(sys.argv[1]))
 
+    print activity_list[0].test_folder_path
 
 if __name__ == '__main__':
     main()

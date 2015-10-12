@@ -7,7 +7,8 @@ class Activity:
 
     def __init__(self, test_folder_path, src_file_extension=".c", output_folder_path=None, output_file_extension=None,
                  result_file_path=None, result_file_extension=None):
-        self.test_folder_path = os.path.abspath(test_folder_path)
+
+        self.test_folder_path = os.path.abspath(os.path.normpath(test_folder_path))
         self.src_file_extension = src_file_extension
         if output_folder_path is None:
             self.output_folder_path = os.path.join(test_folder_path, os.path.basename(test_folder_path) + ".pykrunner")
@@ -31,10 +32,6 @@ class Activity:
 
         else:
             self.result_file_extension = result_file_extension
-    
-
-
-
 
 
 
