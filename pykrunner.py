@@ -17,8 +17,9 @@ def execute_test(src_file_path, output_file_path, result_file_path, timeout):
     try:
         result = execute(command)
         if (result[0] != "stderr"):
-            command = output_file_path
+            command = [output_file_path]
             result = execute(command, error_mode=subprocess.STDOUT)
+            print result
             result_file = open(result_file_path, 'w')
             result_file.write(result[1])
             result_file.close()
@@ -27,16 +28,19 @@ def execute_test(src_file_path, output_file_path, result_file_path, timeout):
     except TimeOutException as timeout:
         return ("timeout", timeout.message)
 
+
 def execute(command, error_mode=None):
     try:
-        print("pykrunner runninng \"" + str(command) + "\"")
+        print("pykrunner runninng \"" + " ".join(map(str, command)) + "\"")
         # Capture the Error in STDOUT
         if error_mode == None:
             result = subprocess.check_output(command)
         else:
             result = subprocess.check_output(command, stderr=error_mode)
+            print result
         return ("stdout", result)
     except subprocess.CalledProcessError as stderr:
+        print stderr.
         return ("stderr", stderr.output)
 
 
@@ -73,7 +77,7 @@ def thread_handler(test_folder, output_path, src_file_extension, thread_count):
 # result_file_path = os.path.join(output_path, src_file.split(".")[0] + ".pyk")
 # active_thread_list.append(
 # threading.Thread(name=src_file,
-#                                      target=execute_test(src_file_path, output_file_path, result_file_path)))
+# target=execute_test(src_file_path, output_file_path, result_file_path)))
 #             else:
 #                 non_termination_list.extend(run_and_wait(active_thread_list))
 #                 thread_count += len(active_thread_list)
