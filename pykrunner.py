@@ -2,35 +2,39 @@ __author__ = 'manasvi'
 import os
 import subprocess
 import sys
-import filecmp
 from multiprocessing import Pool
 import signal
 
-def timeout_handler(signum, frame):
-    raise Exception("timeout")
 
-def execute_test(src_file_path, output_file_path, result_file_path):
+def timeout_handler(signum, frame):
+    raise TimeOutException("timeout")
+
+
+def execute_test(src_file_path, output_file_path, result_file_path, timeout):
     command = ["kcc", src_file_path, "-o", output_file_path]
-    signal.signal(signal.SIGALRM, execute)
-    signal.alarm(50)
-    result = execute(command)
+    signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(timeout)
     try:
+        result = execute(command)
         if (result[0] != "stderr"):
             command = output_file_path
-            result = execute(command)
+            result = execute(command, error_mode=subprocess.STDOUT)
             result_file = open(result_file_path, 'w')
             result_file.write(result[1])
             result_file.close()
             return result
         return result
-    except Exception as timout:
-        return ("timeout", "")
+    except TimeOutException as timeout:
+        return ("timeout", timeout.message)
 
-def execute(command):
+def execute(command, error_mode=None):
     try:
-        print("pykrunner runninng \"" + command + "\"")
+        print("pykrunner runninng \"" + str(command) + "\"")
         # Capture the Error in STDOUT
-        result = subprocess.check_output(command)
+        if error_mode == None:
+            result = subprocess.check_output(command)
+        else:
+            result = subprocess.check_output(command, stderr=error_mode)
         return ("stdout", result)
     except subprocess.CalledProcessError as stderr:
         return ("stderr", stderr.output)
@@ -38,10 +42,14 @@ def execute(command):
 
 # wrapper function may be needed if lambda fails in pool call
 def execute_test_wrapper(tuple_a):
-    execute_test(tuple_a[0], tuple_a[1], tuple_a[2])
+    return execute_test(tuple_a[0], tuple_a[1], tuple_a[2], tuple_a[3])
 
 
 def thread_handler(test_folder, output_path, src_file_extension, thread_count):
+    # print test_folder
+    # print output_path
+    # print src_file_extension
+    # print thread_count
     pool = Pool(processes=thread_count)
     map_list = []
     result_dict = {}
@@ -49,9 +57,9 @@ def thread_handler(test_folder, output_path, src_file_extension, thread_count):
         src_file_path = os.path.join(test_folder, src_file)
         output_file_path = os.path.join(output_path, src_file.split(".")[0] + ".out")
         result_file_path = os.path.join(output_path, src_file.split(".")[0] + ".pyk")
-        map_list.append((src_file_path, output_file_path, result_file_path))
-
-    return pool.map(lambda x: execute_test(x[0], x[1], x[2]), map_list)
+        map_list.append((src_file_path, output_file_path, result_file_path, 100))
+        # wrapper is needed as pickling fails with pool. Alternative solution to be looked into later
+    pool.map(execute_test_wrapper, map_list)
 
 
 # def thread_handler(test_folder, output_path, src_file_extension, thread_count):
@@ -59,12 +67,12 @@ def thread_handler(test_folder, output_path, src_file_extension, thread_count):
 # for src_file in os.listdir(test_folder):
 # active_thread_list = []
 # if src_file.endswith(src_file_extension):
-#             if (thread_count > 0):
-#                 src_file_path = os.path.join(test_folder, src_file)
-#                 output_file_path = os.path.join(output_path, src_file.split(".")[0] + ".out")
-#                 result_file_path = os.path.join(output_path, src_file.split(".")[0] + ".pyk")
-#                 active_thread_list.append(
-#                     threading.Thread(name=src_file,
+# if (thread_count > 0):
+# src_file_path = os.path.join(test_folder, src_file)
+# output_file_path = os.path.join(output_path, src_file.split(".")[0] + ".out")
+# result_file_path = os.path.join(output_path, src_file.split(".")[0] + ".pyk")
+# active_thread_list.append(
+# threading.Thread(name=src_file,
 #                                      target=execute_test(src_file_path, output_file_path, result_file_path)))
 #             else:
 #                 non_termination_list.extend(run_and_wait(active_thread_list))
@@ -150,11 +158,15 @@ def main():
             continue
 
     # results = process_test_folder("kcc", test_folders, output_folder, file_extension, result_file_ext)
-    results = map(lambda x : thread_handler(x, output_folder, src_file_extension=file_extension, 4))
-    print "Results:"
-    for result in results.keys():
-        print result + " ---> " + results.get(result)
+    for test_folder in test_folders:
+        thread_handler(test_folder, output_folder, file_extension, 1)
+        # print str(thread_handler(test_folder, output_folder, file_extension, 3))
 
 
 if __name__ == '__main__':
     main()
+
+
+class TimeOutException(Exception):
+    def __init__(self, message):
+        super(TimeOutException, message)
