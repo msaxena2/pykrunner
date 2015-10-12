@@ -76,35 +76,35 @@ def thread_handler(test_folder, output_path, src_file_extension, thread_count):
 #
 
 
-def process_test_folder(executable_path, test_folders, output_path, src_file_ext, result_file_ext):
-    success_map = {}
-    for test_folder_path in test_folders:
-        for src_file in os.listdir(test_folder_path):
-            if src_file.endswith(src_file_ext):
-                print "Testing " + src_file
-                src_file_path = os.path.join(test_folder_path, src_file)
-                src_file_name = src_file.split(".")[0]
-                output_executable = os.path.join(output_path, (src_file_name + ".out"))
-                output_pykrun = os.path.join(output_path, (src_file_name + ".pyk"))
-                kcc_result = execute((executable_path + " " + src_file_path + " -o " + output_executable))
-                if kcc_result[0] == "SUCCESS":
-                    try:
-                        result = execute(output_executable)
-                        output_pykrun_file = open(output_pykrun, mode='w')
-                        output_pykrun_file.write(result[1])
-                        ref_file_ext = os.path.join(test_folder_path, (src_file_name + result_file_ext))
-                        if (os.path.exists(ref_file_ext)):
-                            if filecmp.cmp(output_pykrun_file, open(ref_file_ext)):
-                                success_map[src_file] = "Success"
-                            else:
-                                success_map[src_file] = "Files didn't match"
-                        else:
-                            success_map[src_file] = "Reference File Absent"
-                    except Exception, msg:
-                        if msg == "time out":
-                            success_map[src_file] = "Time Out"
-
-    return success_map
+# def process_test_folder(executable_path, test_folders, output_path, src_file_ext, result_file_ext):
+#     success_map = {}
+#     for test_folder_path in test_folders:
+#         for src_file in os.listdir(test_folder_path):
+#             if src_file.endswith(src_file_ext):
+#                 print "Testing " + src_file
+#                 src_file_path = os.path.join(test_folder_path, src_file)
+#                 src_file_name = src_file.split(".")[0]
+#                 output_executable = os.path.join(output_path, (src_file_name + ".out"))
+#                 output_pykrun = os.path.join(output_path, (src_file_name + ".pyk"))
+#                 kcc_result = execute((executable_path + " " + src_file_path + " -o " + output_executable))
+#                 if kcc_result[0] == "SUCCESS":
+#                     try:
+#                         result = execute(output_executable)
+#                         output_pykrun_file = open(output_pykrun, mode='w')
+#                         output_pykrun_file.write(result[1])
+#                         ref_file_ext = os.path.join(test_folder_path, (src_file_name + result_file_ext))
+#                         if (os.path.exists(ref_file_ext)):
+#                             if filecmp.cmp(output_pykrun_file, open(ref_file_ext)):
+#                                 success_map[src_file] = "Success"
+#                             else:
+#                                 success_map[src_file] = "Files didn't match"
+#                         else:
+#                             success_map[src_file] = "Reference File Absent"
+#                     except Exception, msg:
+#                         if msg == "time out":
+#                             success_map[src_file] = "Time Out"
+#
+#     return success_map
 
 
 # def parse_config_file(config_file):
@@ -149,7 +149,8 @@ def main():
         else:
             continue
 
-    results = process_test_folder("kcc", test_folders, output_folder, file_extension, result_file_ext)
+    # results = process_test_folder("kcc", test_folders, output_folder, file_extension, result_file_ext)
+    results = map(lambda x : thread_handler(x, output_folder, src_file_extension=file_extension, 4))
     print "Results:"
     for result in results.keys():
         print result + " ---> " + results.get(result)

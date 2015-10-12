@@ -8,3 +8,5 @@ class Task:
         self.source_file_extension = source_file_extension
         self.result_folder = result_folder
         self.result_file_extension = result_file_extension
+
+
