@@ -6,7 +6,7 @@ import os
 class Activity:
 
     def __init__(self, test_folder_path, src_file_extension=".c", output_folder_path=None, output_file_extension=None,
-                 result_file_path=None, result_file_extension=None):
+                 result_file_path=None, result_file_extension=None, thread_count=4):
 
         self.test_folder_path = os.path.abspath(os.path.normpath(test_folder_path))
         self.src_file_extension = src_file_extension
@@ -32,6 +32,12 @@ class Activity:
 
         else:
             self.result_file_extension = result_file_extension
+
+        if thread_count != 4:
+            self.thread_count = thread_count
+
+        else:
+            self.thread_count = thread_count
 
 
 

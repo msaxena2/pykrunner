@@ -51,14 +51,13 @@ def execute_test_wrapper(tuple_a):
     return execute_test(tuple_a[0], tuple_a[1], tuple_a[2], tuple_a[3])
 
 
-def thread_handler(test_folder_path, src_file_extension, output_folder_path, output_file_extension, result_folder_path,
-                   result_file_extension, thread_count, timeout):
-    pool = Pool(processes=thread_count)
+def thread_handler(activity):
+    pool = Pool(processes=activity.thread_count)
     map_list = []
-    for src_file in filter(lambda x: x.endswith(src_file_extension), os.listdir(test_folder_path)):
-        src_file_path = os.path.join(test_folder_path, src_file)
-        output_file_path = os.path.join(output_folder_path, src_file.split(".")[0] + output_file_extension)
-        result_file_path = os.path.join(result_folder_path, src_file.split(".")[0] + result_file_extension)
+    for src_file in filter(lambda x: x.endswith(activity.src_file_extension), os.listdir(activity.test_folder_path)):
+        src_file_path = os.path.join(activity.test_folder_path, src_file)
+        output_file_path = os.path.join(activity.output_folder_path, src_file.split(".")[0] + activity.output_file_extension)
+        result_file_path = os.path.join(activity.result_folder_path, src_file.split(".")[0] + activity.result_file_extension)
         map_list.append((src_file_path, output_file_path, result_file_path, 20))
         # wrapper is needed as pickling fails with pool. Alternative solution to be looked into later
     return pool.map(execute_test_wrapper, map_list)
