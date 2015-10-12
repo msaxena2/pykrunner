@@ -5,11 +5,11 @@ import sys
 from multiprocessing import Pool
 import signal
 import pykrunner_parser
-from activity import Activity
 
 
 class TimeOutException(Exception):
     pass
+
 
 def timeout_handler(signum, frame):
     raise TimeOutException("timeout occured")
@@ -32,6 +32,7 @@ def execute_test(src_file_path, output_file_path, result_file_path, timeout):
     except TimeOutException as timeout:
         return ("timeout", timeout.message)
 
+
 def execute(command, error_mode=None):
     try:
         print("pykrunner runninng \"" + " ".join(map(str, command)) + "\"")
@@ -50,21 +51,21 @@ def execute_test_wrapper(tuple_a):
     return execute_test(tuple_a[0], tuple_a[1], tuple_a[2], tuple_a[3])
 
 
-def thread_handler(test_folder, output_path, src_file_extension, thread_count):
-    # print test_folder
-    # print output_path
-    # print src_file_extension
-    # print thread_count
+def thread_handler(test_folder_path, src_file_extension, output_folder_path, output_file_extension, result_folder_path,
+                   result_file_extension, thread_count, timeout):
     pool = Pool(processes=thread_count)
     map_list = []
-    result_dict = {}
-    for src_file in filter(lambda x: x.endswith(src_file_extension), os.listdir(test_folder)):
-        src_file_path = os.path.join(test_folder, src_file)
-        output_file_path = os.path.join(output_path, src_file.split(".")[0] + ".out")
-        result_file_path = os.path.join(output_path, src_file.split(".")[0] + ".pyk")
+    for src_file in filter(lambda x: x.endswith(src_file_extension), os.listdir(test_folder_path)):
+        src_file_path = os.path.join(test_folder_path, src_file)
+        output_file_path = os.path.join(output_folder_path, src_file.split(".")[0] + output_file_extension)
+        result_file_path = os.path.join(result_folder_path, src_file.split(".")[0] + result_file_extension)
         map_list.append((src_file_path, output_file_path, result_file_path, 20))
         # wrapper is needed as pickling fails with pool. Alternative solution to be looked into later
-    print pool.map(execute_test_wrapper, map_list)
+    return pool.map(execute_test_wrapper, map_list)
+
+
+def activiy_handler(activity):
+    thread_handler(activity.test_folder_path, activity.src_file_extension, )
 
 
 # def thread_handler(test_folder, output_path, src_file_extension, thread_count):
@@ -80,7 +81,7 @@ def thread_handler(test_folder, output_path, src_file_extension, thread_count):
 # threading.Thread(name=src_file,
 # target=execute_test(src_file_path, output_file_path, result_file_path)))
 # else:
-#                 non_termination_list.extend(run_and_wait(active_thread_list))
+# non_termination_list.extend(run_and_wait(active_thread_list))
 #                 thread_count += len(active_thread_list)
 #                 active_thread_list = []
 #     if len(active_thread_list) > 0:
@@ -171,6 +172,7 @@ def main():
     activity_list = pykrunner_parser.parse(os.path.abspath(sys.argv[1]))
 
     print activity_list[0].test_folder_path
+
 
 if __name__ == '__main__':
     main()
