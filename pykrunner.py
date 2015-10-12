@@ -6,8 +6,11 @@ from multiprocessing import Pool
 import signal
 
 
+class TimeOutException(Exception):
+    pass
+
 def timeout_handler(signum, frame):
-    raise TimeOutException("timeout")
+    raise TimeOutException("timeout occured")
 
 
 def execute_test(src_file_path, output_file_path, result_file_path, timeout):
@@ -19,7 +22,6 @@ def execute_test(src_file_path, output_file_path, result_file_path, timeout):
         if (result[0] != "stderr"):
             command = [output_file_path]
             result = execute(command, error_mode=subprocess.STDOUT)
-            print result
             result_file = open(result_file_path, 'w')
             result_file.write(result[1])
             result_file.close()
@@ -27,7 +29,6 @@ def execute_test(src_file_path, output_file_path, result_file_path, timeout):
         return result
     except TimeOutException as timeout:
         return ("timeout", timeout.message)
-
 
 def execute(command, error_mode=None):
     try:
@@ -37,10 +38,8 @@ def execute(command, error_mode=None):
             result = subprocess.check_output(command)
         else:
             result = subprocess.check_output(command, stderr=error_mode)
-            print result
         return ("stdout", result)
     except subprocess.CalledProcessError as stderr:
-        print stderr.
         return ("stderr", stderr.output)
 
 
@@ -61,9 +60,9 @@ def thread_handler(test_folder, output_path, src_file_extension, thread_count):
         src_file_path = os.path.join(test_folder, src_file)
         output_file_path = os.path.join(output_path, src_file.split(".")[0] + ".out")
         result_file_path = os.path.join(output_path, src_file.split(".")[0] + ".pyk")
-        map_list.append((src_file_path, output_file_path, result_file_path, 100))
+        map_list.append((src_file_path, output_file_path, result_file_path, 20))
         # wrapper is needed as pickling fails with pool. Alternative solution to be looked into later
-    pool.map(execute_test_wrapper, map_list)
+    print pool.map(execute_test_wrapper, map_list)
 
 
 # def thread_handler(test_folder, output_path, src_file_extension, thread_count):
@@ -78,7 +77,7 @@ def thread_handler(test_folder, output_path, src_file_extension, thread_count):
 # active_thread_list.append(
 # threading.Thread(name=src_file,
 # target=execute_test(src_file_path, output_file_path, result_file_path)))
-#             else:
+# else:
 #                 non_termination_list.extend(run_and_wait(active_thread_list))
 #                 thread_count += len(active_thread_list)
 #                 active_thread_list = []
@@ -121,56 +120,54 @@ def thread_handler(test_folder, output_path, src_file_extension, thread_count):
 
 # def parse_config_file(config_file):
 
+# def main():
+#     state = "default"
+#     test_folders = []
+#     file_extension = ""
+#     output_folder = ""
+#     result_file_ext = ""
+#
+#     for line in open(os.path.abspath(sys.argv[1])):
+#         line = line.rstrip()
+#
+#         if line == "test-folders:":
+#             state = "test-folders"
+#             continue
+#         if line == "file-extension:":
+#             state = "file-extension"
+#             continue
+#         if line == "output-folder:":
+#             state = "output-folder"
+#             continue
+#         if line == "result-file-ext:":
+#             state == "result_ext"
+#             continue
+#         if line == "":
+#             state == "default"
+#             continue
+#
+#         if state == "test-folders":
+#             test_folders.append(line)
+#         elif state == "file-extension":
+#             file_extension = line
+#             state = "default"
+#         elif state == "output-folder":
+#             output_folder = line
+#             state = "default"
+#         elif state == "result_ext":
+#             result_file_ext = line
+#             state = "default"
+#         else:
+#             continue
+#
+#     # results = process_test_folder("kcc", test_folders, output_folder, file_extension, result_file_ext)
+#     for test_folder in test_folders:
+#         thread_handler(test_folder, output_folder, file_extension, 1)
+#         # print str(thread_handler(test_folder, output_folder, file_extension, 3))
+
 def main():
-    state = "default"
-    test_folders = []
-    file_extension = ""
-    output_folder = ""
-    result_file_ext = ""
-
-    for line in open(os.path.abspath(sys.argv[1])):
-        line = line.rstrip()
-
-        if line == "test-folders:":
-            state = "test-folders"
-            continue
-        if line == "file-extension:":
-            state = "file-extension"
-            continue
-        if line == "output-folder:":
-            state = "output-folder"
-            continue
-        if line == "result-file-ext:":
-            state == "result_ext"
-            continue
-        if line == "":
-            state == "default"
-            continue
-
-        if state == "test-folders":
-            test_folders.append(line)
-        elif state == "file-extension":
-            file_extension = line
-            state = "default"
-        elif state == "output-folder":
-            output_folder = line
-            state = "default"
-        elif state == "result_ext":
-            result_file_ext = line
-            state = "default"
-        else:
-            continue
-
-    # results = process_test_folder("kcc", test_folders, output_folder, file_extension, result_file_ext)
-    for test_folder in test_folders:
-        thread_handler(test_folder, output_folder, file_extension, 1)
-        # print str(thread_handler(test_folder, output_folder, file_extension, 3))
 
 
 if __name__ == '__main__':
     main()
 
-
-class TimeOutException(Exception):
-    def __init__(self, message):
-        super(TimeOutException, message)
