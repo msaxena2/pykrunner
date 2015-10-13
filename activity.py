@@ -6,7 +6,7 @@ import os
 class Activity:
 
     def __init__(self, test_folder_path, src_file_extension=".c", output_folder_path=None, output_file_extension=None,
-                 result_file_path=None, result_file_extension=None, thread_count=4):
+                 result_folder_path=None, result_file_extension=None, thread_count=4):
 
         self.test_folder_path = os.path.abspath(os.path.normpath(test_folder_path))
         self.src_file_extension = src_file_extension
@@ -21,11 +21,11 @@ class Activity:
         else:
             self.output_file_extension = output_file_extension
 
-        if result_file_path is None:
+        if result_folder_path is None:
             self.result_file_path = os.path.join(test_folder_path, os.path.basename(test_folder_path) + ".pykresult")
 
         else:
-            self.result_file_path = os.path.abspath(result_file_path)
+            self.result_file_path = os.path.abspath(result_folder_path)
 
         if result_file_extension is None:
             self.result_file_extension = ".pyk"

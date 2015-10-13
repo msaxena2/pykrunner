@@ -56,8 +56,15 @@ def thread_handler(activity):
     map_list = []
     for src_file in filter(lambda x: x.endswith(activity.src_file_extension), os.listdir(activity.test_folder_path)):
         src_file_path = os.path.join(activity.test_folder_path, src_file)
-        output_file_path = os.path.join(activity.output_folder_path, src_file.split(".")[0] + activity.output_file_extension)
-        result_file_path = os.path.join(activity.result_folder_path, src_file.split(".")[0] + activity.result_file_extension)
+        if not os.path.exists(activity.output_folder_path):
+            os.mkdir(activity.output_folder_path)
+        output_file_path = os.path.join(activity.output_folder_path,
+                                        src_file.split(".")[0] + activity.output_file_extension)
+        if not os.path.exists(activity.result_folder_path):
+            os.mkdir(activity.result_folder_path)
+
+        result_file_path = os.path.join(activity.result_folder_path,
+                                        src_file.split(".")[0] + activity.result_file_extension)
         map_list.append((src_file_path, output_file_path, result_file_path, 20))
         # wrapper is needed as pickling fails with pool. Alternative solution to be looked into later
     return pool.map(execute_test_wrapper, map_list)
@@ -81,7 +88,7 @@ def activiy_handler(activity):
 # target=execute_test(src_file_path, output_file_path, result_file_path)))
 # else:
 # non_termination_list.extend(run_and_wait(active_thread_list))
-#                 thread_count += len(active_thread_list)
+# thread_count += len(active_thread_list)
 #                 active_thread_list = []
 #     if len(active_thread_list) > 0:
 #         non_termination_list.extend(run_and_wait(active_thread_list))
@@ -169,8 +176,8 @@ def activiy_handler(activity):
 
 def main():
     activity_list = pykrunner_parser.parse(os.path.abspath(sys.argv[1]))
-
-    print activity_list[0].test_folder_path
+    print activity_list
+    map(thread_handler, activity_list)
 
 
 if __name__ == '__main__':

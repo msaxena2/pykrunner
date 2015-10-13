@@ -1,7 +1,6 @@
 __author__ = 'manasvi'
 import yaml
 from activity import Activity
-import os
 
 
 def parse(config_file_path):
