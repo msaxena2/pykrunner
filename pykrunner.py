@@ -20,6 +20,10 @@ def execute_test(src_file_path, output_file_path, result_file_path, timeout):
     signal.signal(signal.SIGALRM, timeout_handler)
     signal.alarm(timeout)
     try:
+        if os.path.exists(output_file_path) or os.path.exists(result_file_path):
+            return ("res", "res")
+        if os.path.exists(result_file_path):
+            return ("res", "res")
         result = execute(command)
         if (result[0] != "stderr"):
             command = [output_file_path]
@@ -30,10 +34,18 @@ def execute_test(src_file_path, output_file_path, result_file_path, timeout):
             return result
         return result
     except TimeOutException as timeout:
+        result_file = open(result_file_path, 'w')
+        result_file.write("timed-out")
+        result_file.close()
         return ("timeout", timeout.message)
+    except Exception as normalExp:
+        result_file = open(result_file_path, 'w')
+        result_file.write(result[1])
+        result_file.close()
+        return ("exception", "Exception")
 
 
-def execute(command, error_mode=None):
+def execute(command, error_mode=subprocess.STDOUT):
     try:
         print("pykrunner runninng \"" + " ".join(map(str, command)) + "\"")
         # Capture the Error in STDOUT
@@ -64,18 +76,17 @@ def thread_handler(activity):
             os.mkdir(activity.result_folder_path)
         result_file_path = os.path.join(activity.result_folder_path,
                                         src_file.split(".")[0] + activity.result_file_extension)
-        map_list.append((src_file_path, output_file_path, result_file_path, 20))
+        map_list.append((src_file_path, output_file_path, result_file_path, 1000))
         # wrapper is needed as pickling fails with pool. Alternative solution to be looked into later
     return pool.map(execute_test_wrapper, map_list)
 
 
 def main():
     activity_list = pykrunner_parser.parse(os.path.abspath(sys.argv[1]))
-    print activity_list
     for activity in activity_list:
-        thread_handler(activity) \
- \
- \
+        thread_handler(activity)
+
+
 if __name__ == '__main__':
     main()
 

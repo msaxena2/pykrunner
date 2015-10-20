@@ -11,9 +11,10 @@ class Activity:
         self.test_folder_path = os.path.abspath(os.path.normpath(test_folder_path))
         self.src_file_extension = src_file_extension
         if output_folder_path is None:
-            self.output_folder_path = os.path.join(test_folder_path, os.path.basename(test_folder_path) + ".pykrunner")
+            # self.output_folder_path = os.path.join(test_folder_path, os.path.basename(test_folder_path) + "pykrunner")
+            self.output_folder_path = test_folder_path
         else:
-            self.output_folder_path = os.path.abspath(output_folder_path)
+            self.output_folder_path = output_folder_path
 
         if output_file_extension is None:
             self.output_file_extension = ".out"
@@ -22,10 +23,10 @@ class Activity:
             self.output_file_extension = output_file_extension
 
         if result_folder_path is None:
-            self.result_file_path = os.path.join(test_folder_path, os.path.basename(test_folder_path) + ".pykresult")
-
+            # self.result_folder_path = os.path.join(test_folder_path, os.path.basename(test_folder_path) + ".pykresult")
+            self.result_folder_path = test_folder_path
         else:
-            self.result_file_path = os.path.abspath(result_folder_path)
+            self.result_folder_path = result_folder_path
 
         if result_file_extension is None:
             self.result_file_extension = ".pyk"
@@ -39,5 +40,13 @@ class Activity:
         else:
             self.thread_count = thread_count
 
+        if not os.path.exists(result_folder_path):
+            for path in os.path.split(os.path.abspath(result_folder_path)):
+                if not os.path.exists(path):
+                    os.mkdir(path)
 
+        if not os.path.exists(output_folder_path):
+            for path in os.path.split(os.path.abspath(output_folder_path)):
+                if not os.path.exists(path):
+                    os.mkdir(path)
 
